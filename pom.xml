@@ -7,66 +7,44 @@
     <groupId>org.example</groupId>
     <artifactId>atlas</artifactId>
     <version>1.0-SNAPSHOT</version>
-    <build>
-        <plugins>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <configuration>
-                    <source>8</source>
-                    <target>8</target>
-                </configuration>
-            </plugin>
-        </plugins>
-    </build>
+
     <name>ATLAS</name>
 
     <properties>
         <category>Data Mapping</category>
         <title>AtlasMap Data Mapper</title>
         <camel3.version>3.8.0</camel3.version>
+        <final-name>${project.groupId}.${project.artifactId}-${project.version}</final-name>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <log4j2-version>2.13.3</log4j2-version>
+        <maven-shade-plugin-version>3.2.2</maven-shade-plugin-version>
+        <spring-boot-maven-plugin-version>2.2.6.RELEASE</spring-boot-maven-plugin-version>
+        <java-source-version>1.8</java-source-version>
+        <java-target-version>1.8</java-target-version>
+        <maven-compiler-plugin-version>3.8.1</maven-compiler-plugin-version>
+        <maven-resourse-plugin-version>3.1.0</maven-resourse-plugin-version>
+
+        <common-routes>3.3.0-SNAPSHOT</common-routes>
     </properties>
 
     <dependencies>
         <dependency>
-            <groupId>org.apache.camel</groupId>
-            <artifactId>camel-atlasmap</artifactId>
-            <version>${camel3.version}</version>
+            <groupId>com.itprofix.soa</groupId>
+            <artifactId>common-routes</artifactId>
+            <version>3.3.0-SNAPSHOT</version>
         </dependency>
 
-        <dependency>
-            <groupId>org.apache.camel</groupId>
-            <artifactId>camel-main</artifactId>
-            <version>${camel3.version}</version>
-        </dependency>
 
-        <dependency>
-            <groupId>org.apache.camel</groupId>
-            <artifactId>camel-rest</artifactId>
-            <version>${camel3.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>org.apache.camel</groupId>
-            <artifactId>camel-jetty</artifactId>
-            <version>${camel3.version}</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/org.apache.camel/camel-file -->
-        <dependency>
-            <groupId>org.apache.camel</groupId>
-            <artifactId>camel-file</artifactId>
-            <version>3.8.0</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/com.google.guava/guava -->
-        <dependency>
-            <groupId>com.google.guava</groupId>
-            <artifactId>guava</artifactId>
-            <version>30.1.1-jre</version>
-        </dependency>
-        <!-- https://mvnrepository.com/artifact/org.apache.camel/camel-file-watch -->
         <dependency>
             <groupId>org.apache.camel</groupId>
             <artifactId>camel-file-watch</artifactId>
-            <version>3.8.0</version>
+            <version>3.11.1</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.camel</groupId>
+            <artifactId>camel-atlasmap</artifactId>
+            <version>3.11.1</version>
         </dependency>
 
 
@@ -84,6 +62,170 @@
             <version>2.14.1</version>
             <scope>runtime</scope>
         </dependency>
-
+        <dependency>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-assembly-plugin</artifactId>
+            <version>3.1.1</version>
+        </dependency>
     </dependencies>
+
+    <build>
+        <defaultGoal>install</defaultGoal>
+        <finalName>${project.groupId}.${project.artifactId}-${project.version}</finalName>
+        <resources>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <includes>
+                    <include>**/env.yml</include>
+                </includes>
+            </resource>
+            <resource>
+                <directory>src/main/resources</directory>
+                <filtering>true</filtering>
+                <excludes>
+                    <exclude>**/env.yml</exclude>
+                </excludes>
+            </resource>
+        </resources>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${maven-compiler-plugin-version}</version>
+                <configuration>
+                    <source>${java-source-version}</source>
+                    <target>${java-target-version}</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>${maven-resourse-plugin-version}</version>
+                <configuration>
+                    <encoding>UTF-8</encoding>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>copy-resources</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>src/main/resources</outputDirectory>
+                            <resources>
+                                <resource>
+                                    <directory>src/main/resources/filtered</directory>
+                                    <filtering>true</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+                <version>${spring-boot-maven-plugin-version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>repackage</goal>
+                        </goals>
+                        <configuration>
+                            <finalName>${project.groupId}.${project.artifactId}-${project.version}</finalName>
+                            <mainClass>io.atlasmap.examples.camel.main.Application</mainClass>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>io.fabric8</groupId>
+                <artifactId>docker-maven-plugin</artifactId>
+                <version>0.27.2</version>
+                <configuration>
+                    <!--suppress UnresolvedMavenProperty -->
+                    <pushRegistry>${env.SKBLAB_REGISTRY_URL}</pushRegistry>
+                    <authConfig>
+                        <push>
+                            <!--suppress UnresolvedMavenProperty -->
+                            <username>${env.SKBLAB_REGISTRY_USER}</username>
+                            <!--suppress UnresolvedMavenProperty -->
+                            <password>${env.SKBLAB_REGISTRY_PWD}</password>
+                        </push>
+                        <pull>
+                            <!--suppress UnresolvedMavenProperty -->
+                            <username>${env.SKBLAB_REGISTRY_USER}</username>
+                            <!--suppress UnresolvedMavenProperty -->
+                            <password>${env.SKBLAB_REGISTRY_PWD}</password>
+                        </pull>
+                    </authConfig>
+                    <images>
+                        <image>
+                            <name>%g/%a:%l</name>
+                            <build>
+                                <from>app-registry01.corp.skbbank.ru/smx/openjdk/openjdk:jre8u272-b10-alpine</from>
+                                <tags>
+                                    <!--suppress UnresolvedMavenProperty -->
+                                    <tag>${env.IMAGE_TAG}</tag>
+                                </tags>
+                                <assembly>
+                                    <descriptorRef>artifact</descriptorRef>
+                                </assembly>
+                                <env>
+                                    <!--<JAVA_OPTS>-Xmx256m -Xms128m</JAVA_OPTS>-->
+                                    <APP_OPTS>
+                                        -Djava.security.egd=file:/dev/./urandom
+                                        -XX:+UnlockExperimentalVMOptions
+                                        -XX:+UseCGroupMemoryLimitForHeap
+                                        -Dconfig.location=file:/conf/app.properties
+                                        -Dmars.location=file:/mars/mars.cfg
+                                    </APP_OPTS>
+                                </env>
+                                <runCmds>
+                                    <run>addgroup -g 1000 -S appUser</run>
+                                    <run>adduser -u 1000 -S -G appUser appUser</run>
+                                </runCmds>
+                                <user>appUser</user>
+                                <entryPoint>java $JAVA_OPTS $APP_OPTS -jar maven/${project.build.finalName}.jar</entryPoint>
+                                <!--<entryPoint>java $JAVA_OPTS $APP_OPTS -jar maven/${project.groupId}.${project.artifactId}-${project.version}.jar</entryPoint>-->
+                            </build>
+                            <run>
+                                <user>appUser</user>
+                            </run>
+                        </image>
+                    </images>
+                </configuration>
+            </plugin>
+
+        </plugins>
+    </build>
+    <repositories>
+        <repository>
+            <id>skblab-maven</id>
+            <name>repos.skblab.ru-maven</name>
+            <url>https://artifactory.skblab.ru/artifactory/maven</url>
+            <snapshots>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>central_1</id>
+            <name>repos.skblab.ru-releases</name>
+            <url>https://artifactory.skblab.ru/artifactory/smx</url>
+            <snapshots>
+                <updatePolicy>always</updatePolicy>
+            </snapshots>
+        </repository>
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>skblab-maven</id>
+            <name>repos.skblab.ru-maven</name>
+            <url>https://artifactory.skblab.ru/artifactory/maven</url>
+        </pluginRepository>
+    </pluginRepositories>
+
 </project>
